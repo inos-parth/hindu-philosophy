@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Hindu Philosophy · Interactive Hierarchy</title>
+    <style>
+:root {
+  --bg: #f9f4e9;
+  --bg-alt: #f2ead9;
+  --ink: #2a241c;
+  --ink-soft: #5a4c3c;
+  --rule: #d8cdb5;
+  --accent: #b8860b;
+  --astika: #c2572b;
+  --nastika: #7b3aa8;
+  --texts: #2a7ab0;
+  --concepts: #2e8b57;
+  --panel: #fcf7ec;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+@supports (height: 100dvh) { html, body, #root { height: 100dvh; } }
+body {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+button { font-family: inherit; }
+.app-shell { height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+.app-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(14px, 3vw, 28px); border-bottom: 1px solid var(--rule);
+  background: linear-gradient(180deg, #fcf7ec 0%, #f5ecd7 100%);
+  gap: 16px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand .om { font-size: clamp(30px, 4.5vw, 42px); line-height: 1; color: var(--accent); }
+.brand h1 { margin: 0; font-size: clamp(16px, 2.4vw, 22px); letter-spacing: 0.02em; }
+.subtitle { margin: 2px 0 0; font-size: clamp(11px, 1.4vw, 13px); color: var(--ink-soft); font-style: italic; }
+.legend { display: flex; gap: 10px; font-size: clamp(10px, 1.1vw, 12px); color: var(--ink-soft); flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.swatch-astika { background: var(--astika); }
+.swatch-nastika { background: var(--nastika); }
+.swatch-texts { background: var(--texts); }
+.swatch-concepts { background: var(--concepts); }
+.app-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(340px, 1fr);
+  min-height: 0; position: relative;
+}
+@media (max-width: 960px) {
+  .app-main { grid-template-columns: 1fr; grid-template-rows: minmax(50vh, 58vh) auto; }
+}
+@media (max-width: 600px) {
+  .app-main { grid-template-rows: minmax(55vh, 60vh) auto; }
+}
+.tree-pane {
+  position: relative; border-right: 1px solid var(--rule);
+  background: radial-gradient(ellipse at top left, rgba(184, 134, 11, 0.06), transparent 60%), var(--bg);
+  overflow: hidden; min-height: 0;
+}
+@media (max-width: 960px) { .tree-pane { border-right: none; border-bottom: 1px solid var(--rule); } }
+.tree-wrap { height: 100%; width: 100%; }
+.tree-svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.tree-svg:active { cursor: grabbing; }
+.tree-svg text {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-size: 13px; user-select: none;
+}
+@media (max-width: 600px) { .tree-svg text { font-size: 12px; } }
+.tree-hint {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; color: var(--ink-soft);
+  background: rgba(249, 244, 233, 0.9); padding: 6px 12px;
+  border: 1px solid var(--rule); border-radius: 999px;
+  pointer-events: none; white-space: nowrap;
+  max-width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 600px) { .tree-hint { font-size: 10px; padding: 5px 10px; bottom: 8px; } }
+.detail-pane {
+  overflow-y: auto; background: var(--bg-alt);
+  padding: clamp(18px, 3vw, 28px) clamp(18px, 3vw, 28px) 40px;
+  border-left: 1px solid var(--rule); min-height: 0;
+}
+@media (max-width: 960px) { .detail-pane { border-left: none; max-height: 45vh; } }
+.detail.empty { color: var(--ink-soft); font-style: italic; }
+.detail-head { border-bottom: 1px solid var(--rule); padding-bottom: 14px; margin-bottom: 16px; }
+.detail-sanskrit {
+  font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 4px;
+}
+.detail h2 { margin: 0 0 8px; font-size: clamp(20px, 2.8vw, 26px); letter-spacing: 0.01em; line-height: 1.2; }
+.detail-summary { margin: 0; font-size: clamp(14px, 1.6vw, 15px); color: var(--ink-soft); font-style: italic; line-height: 1.5; }
+.detail-body p { line-height: 1.65; font-size: clamp(14px, 1.6vw, 15px); margin: 0 0 12px; }
+.detail-children { margin-top: 22px; border-top: 1px dashed var(--rule); padding-top: 16px; }
+.detail-children h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+.detail-children ul { list-style: none; margin: 0; padding: 0; }
+.detail-children li { padding: 10px 0; border-bottom: 1px solid rgba(216, 205, 181, 0.5); }
+.detail-children li:last-child { border-bottom: none; }
+.child-name { font-weight: 600; }
+.child-sanskrit { color: var(--ink-soft); font-style: italic; font-size: 13px; }
+.child-summary { margin: 4px 0 0; color: var(--ink-soft); font-size: 13px; line-height: 1.45; }
+.app-footer {
+  padding: 10px clamp(12px, 3vw, 28px); font-size: 11px; color: var(--ink-soft);
+  border-top: 1px solid var(--rule); background: #f5ecd7;
+  text-align: center; letter-spacing: 0.05em;
+}
+.detail-pane::-webkit-scrollbar { width: 10px; }
+.detail-pane::-webkit-scrollbar-thumb { background: rgba(90, 76, 60, 0.25); border-radius: 10px; }
+
+/* Ohmm chat */
+.ohmm-fab {
+  position: fixed;
+  right: calc(clamp(14px, 3vw, 24px) + env(safe-area-inset-right));
+  bottom: calc(clamp(14px, 3vw, 24px) + env(safe-area-inset-bottom));
+  width: 58px; height: 58px; border-radius: 50%; border: none;
+  background: radial-gradient(circle at 30% 30%, #f7cf6b 0%, #c98a1a 60%, #8b5e0e 100%);
+  color: #fff; box-shadow: 0 10px 30px rgba(139, 94, 14, 0.35), 0 0 0 1px rgba(139, 94, 14, 0.15);
+  cursor: pointer; display: grid; place-items: center; font-size: 26px; z-index: 40;
+  transition: transform 220ms cubic-bezier(0.4, 0.1, 0.2, 1), box-shadow 220ms;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.ohmm-fab:hover { transform: scale(1.06); box-shadow: 0 14px 34px rgba(139, 94, 14, 0.45), 0 0 0 1px rgba(139, 94, 14, 0.2); }
+.ohmm-fab:active { transform: scale(0.98); }
+.ohmm-fab.pulsing::after, .ohmm-fab.listening::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid rgba(184, 134, 11, 0.55); animation: pulse 1.6s ease-out infinite;
+}
+@keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1.25); opacity: 0; } }
+.ohmm-fab-label { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-style: italic; line-height: 1; font-size: 22px; }
+.ohmm-backdrop {
+  position: fixed; inset: 0; background: rgba(42, 36, 28, 0.35);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  z-index: 50; display: grid; place-items: end center;
+  animation: ohmm-backdrop-in 220ms ease-out;
+}
+@media (min-width: 700px) { .ohmm-backdrop { place-items: center; } }
+@keyframes ohmm-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+.ohmm-modal {
+  background: var(--panel); width: 100%; max-width: 560px;
+  height: 80dvh; max-height: 720px;
+  border-radius: 18px 18px 0 0;
+  display: grid; grid-template-rows: auto 1fr auto;
+  box-shadow: 0 -20px 60px rgba(50, 35, 20, 0.25);
+  overflow: hidden;
+  animation: ohmm-modal-in 280ms cubic-bezier(0.4, 0.1, 0.2, 1);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@supports not (height: 80dvh) { .ohmm-modal { height: 80vh; } }
+@media (min-width: 700px) {
+  .ohmm-modal { border-radius: 18px; height: min(640px, 80dvh); box-shadow: 0 20px 60px rgba(50, 35, 20, 0.25); padding-bottom: 0; }
+}
+@keyframes ohmm-modal-in { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.ohmm-head {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  border-bottom: 1px solid var(--rule);
+  background: linear-gradient(180deg, #fcf7ec 0%, #f5ecd7 100%);
+}
+.ohmm-head h3 { margin: 0; font-size: 17px; letter-spacing: 0.02em; }
+.ohmm-head p { margin: 0; font-size: 11px; color: var(--ink-soft); font-style: italic; }
+.ohmm-head .om-big { font-size: 28px; color: var(--accent); line-height: 1; }
+.ohmm-close {
+  margin-left: auto; background: transparent; border: none;
+  font-size: 24px; color: var(--ink-soft); cursor: pointer;
+  padding: 4px 10px; border-radius: 8px; line-height: 1;
+}
+.ohmm-close:hover { background: rgba(90, 76, 60, 0.1); color: var(--ink); }
+.ohmm-body {
+  overflow-y: auto; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ohmm-msg {
+  max-width: 85%; padding: 10px 14px; border-radius: 14px;
+  line-height: 1.5; font-size: 14.5px; white-space: pre-wrap; word-wrap: break-word;
+  animation: ohmm-msg-in 260ms ease-out;
+}
+@keyframes ohmm-msg-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.ohmm-msg.bot { background: #fff; border: 1px solid var(--rule); color: var(--ink); border-bottom-left-radius: 4px; align-self: flex-start; }
+.ohmm-msg.user { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+.ohmm-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.ohmm-suggestions button {
+  font-size: 12px; border: 1px solid var(--rule); background: #fff; color: var(--ink);
+  padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  transition: background 160ms, border-color 160ms;
+}
+.ohmm-suggestions button:hover { background: var(--bg); border-color: var(--accent); }
+.ohmm-foot {
+  border-top: 1px solid var(--rule); padding: 10px 12px;
+  display: grid; grid-template-columns: 1fr auto auto; gap: 8px;
+  align-items: center; background: #fffaf0;
+}
+.ohmm-input {
+  border: 1px solid var(--rule); background: #fff; border-radius: 10px;
+  padding: 10px 12px; font-size: 16px; font-family: inherit; color: var(--ink);
+  outline: none; min-width: 0;
+}
+.ohmm-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15); }
+.ohmm-btn {
+  background: var(--accent); color: #fff; border: none; border-radius: 10px;
+  padding: 10px 14px; cursor: pointer; font-weight: 600; font-size: 14px;
+  transition: transform 140ms, filter 140ms;
+}
+.ohmm-btn:hover { filter: brightness(1.08); }
+.ohmm-btn:active { transform: translateY(1px); }
+.ohmm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ohmm-mic {
+  background: #fff; color: var(--accent); border: 1px solid var(--rule);
+  border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 18px;
+  line-height: 1; transition: background 160ms, transform 140ms; position: relative;
+}
+.ohmm-mic.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ohmm-mic.active::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 12px;
+  border: 2px solid rgba(184, 134, 11, 0.55); animation: pulse 1.6s ease-out infinite;
+}
+.ohmm-mic:disabled { opacity: 0.5; cursor: not-allowed; }
+.ohmm-status {
+  grid-column: 1 / -1; font-size: 11px; color: var(--ink-soft);
+  text-align: center; padding: 2px 0 0; font-style: italic; min-height: 14px;
+}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/d3@7/dist/d3.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel" data-type="module">
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+// ================================================================
+// Hierarchy data (original paraphrased summaries)
+// ================================================================
+
+const hierarchy = {
+  id: "root",
+  name: "Hindu Philosophy",
+  sanskrit: "Darśana",
+  summary: "A family of systematic philosophical traditions that grew out of the Vedic corpus on the Indian subcontinent. The Sanskrit word darśana literally means a viewpoint or a way of seeing, and each school represents a distinct lens on reality, knowledge, and liberation.",
+  description: "Hindu philosophy is not a single doctrine but a long, argumentative conversation among schools that developed over more than two millennia. They share a cluster of guiding questions — what is ultimately real, how we come to know anything reliably, and how a person can be free from suffering — while disagreeing sharply on the answers. The standard classification divides them by their stance toward the Vedas: six orthodox schools accept Vedic authority, while several heterodox systems reject it. Both sides influenced one another through centuries of debate.",
+  children: [
+    {
+      id: "texts", name: "Foundational Texts", sanskrit: "Śruti & Smṛti",
+      summary: "The shared scriptural base that the orthodox schools treat as revealed and that the heterodox schools interact with critically.",
+      description: "Before there are schools, there is a library. The foundational texts of Hindu philosophy were composed over many centuries and layered on top of one another. Hymns and ritual manuals came first, then speculative dialogues, then terse aphoristic sūtras, and finally long systematic commentaries. Different traditions privilege different parts of this library, which is one reason the schools diverge so much.",
+      children: [
+        { id: "vedas", name: "The Vedas", sanskrit: "Veda",
+          summary: "Four ancient collections of hymns, ritual formulas, and speculative passages that form the oldest layer of Indian religious literature.",
+          description: "The four Vedas — Ṛg, Yajur, Sāma, and Atharva — are a composite body of hymns, chants, sacrificial instructions, and philosophical fragments. The orthodox schools treat them as authorless and revealed (śruti), which is why defending or denying their authority became the pivot around which classical Indian philosophy was organized." },
+        { id: "upanishads", name: "Upaniṣads", sanskrit: "Upaniṣad",
+          summary: "Late-Vedic dialogues that turn attention from ritual to the nature of the self and ultimate reality.",
+          description: "The Upaniṣads are the speculative, dialogical culmination of the Vedic corpus. They pose the questions that Vedānta will spend a thousand years working on: what is Brahman, the ground of everything, and what is ātman, the self that is somehow inside experience? Their cryptic metaphors and thought experiments seeded most of the later metaphysics." },
+        { id: "gita", name: "Bhagavad Gītā", sanskrit: "Bhagavad-Gītā",
+          summary: "A 700-verse dialogue set on a battlefield in which Kṛṣṇa teaches Arjuna three interwoven paths to freedom.",
+          description: "Embedded in the epic Mahābhārata, the Gītā synthesizes paths of action, knowledge, and devotion into a single practical teaching addressed to someone paralyzed by doubt. Almost every later Vedānta teacher wrote a commentary on it, which is one reason it ends up quoted on every side of every internal Vedāntic argument." },
+        { id: "sutras", name: "Sūtras & Commentaries", sanskrit: "Sūtra, Bhāṣya",
+          summary: "Compact aphoristic texts that gave each school its canonical formulation, along with the elaborate commentaries that interpret them.",
+          description: "Indian philosophical schools were typically crystallized by a set of sūtras — extremely terse aphorisms that presuppose a teacher to unpack them. The Nyāya, Vaiśeṣika, Sāṃkhya, Yoga, Mīmāṃsā, and Brahma Sūtras each anchor one of the orthodox traditions. The real philosophical action often happens in the commentaries (bhāṣya) and sub-commentaries written around them." }
+      ]
+    },
+    {
+      id: "astika", name: "Orthodox Schools", sanskrit: "Āstika",
+      summary: "The six systems that accept the authority of the Vedas and are traditionally grouped in three pairs.",
+      description: "Āstika schools are the ones that treat the Vedas as a valid source of knowledge. They are conventionally listed as six: Nyāya, Vaiśeṣika, Sāṃkhya, Yoga, Mīmāṃsā, and Vedānta. Tradition pairs them — Nyāya with Vaiśeṣika, Sāṃkhya with Yoga, Mīmāṃsā with Vedānta — because the members of each pair largely share metaphysical assumptions while specializing in different problems.",
+      children: [
+        { id: "nyaya", name: "Nyāya", sanskrit: "Nyāya",
+          summary: "A school of logic and epistemology focused on what counts as a valid way of coming to know something.",
+          description: "Associated with the sage Gautama (Akṣapāda), Nyāya is the most rigorously logical of the orthodox schools. It identifies four valid means of knowledge — perception, inference, comparison, and testimony — and works out careful rules for each. Its practical payoff is liberation through the removal of false cognition: if you stop misunderstanding the world, you stop generating the attachments that keep you trapped in it." },
+        { id: "vaisesika", name: "Vaiśeṣika", sanskrit: "Vaiśeṣika",
+          summary: "A pluralist atomist metaphysics that classifies everything in reality into a small number of categories.",
+          description: "Attributed to Kaṇāda, Vaiśeṣika pairs with Nyāya and supplies a picture of what there is. Reality falls into categories such as substance, quality, action, universal, particularity, and inherence. The physical world is built from eternal atoms (aṇu) whose combinations are governed by both natural and moral law. Its project is a kind of early systematic ontology, concerned with distinguishing the sorts of things that can exist." },
+        { id: "samkhya", name: "Sāṃkhya", sanskrit: "Sāṃkhya",
+          summary: "An ancient dualism that separates pure consciousness from primordial matter and explains experience as an entanglement between them.",
+          description: "Sāṃkhya, associated with the sage Kapila, is one of the oldest systematic schools. It draws a hard line between puruṣa, the witnessing consciousness, and prakṛti, unconscious matter composed of three fundamental strands (guṇas) called sattva, rajas, and tamas. Ordinary experience happens when consciousness mistakenly identifies itself with the workings of matter; liberation is the clear discernment that the two are not the same." },
+        { id: "yoga", name: "Yoga", sanskrit: "Yoga",
+          summary: "A disciplined path of ethical, bodily, and mental training built on Sāṃkhya metaphysics.",
+          description: "Codified in Patañjali's Yoga Sūtras, this school accepts the basic metaphysical picture of Sāṃkhya but focuses on a practical method. Its eight limbs move from ethical restraints and observances through posture, breath control, sensory withdrawal, concentration, and meditation, toward absorption (samādhi). Where Sāṃkhya analyzes bondage, Yoga offers a step-by-step training in dis-identification." },
+        { id: "mimamsa", name: "Mīmāṃsā", sanskrit: "Pūrva-Mīmāṃsā",
+          summary: "The school devoted to interpreting Vedic ritual and defending the binding force of dharmic action.",
+          description: "Founded by Jaimini, Mīmāṃsā is almost entirely concerned with the correct interpretation of Vedic injunctions. It holds that the Vedas are eternal and uncreated and that ritual action, done properly, produces an unseen effect (apūrva) that later bears fruit. Its epistemology is insistently realist: perceptions and sentences are taken to be trustworthy until specifically defeated, rather than the other way around." },
+        {
+          id: "vedanta", name: "Vedānta", sanskrit: "Uttara-Mīmāṃsā",
+          summary: "The philosophical interpretation of the Upaniṣads — a family of schools that disagree over how the self relates to the ultimate.",
+          description: "Vedānta, literally 'the end of the Vedas,' takes the Upaniṣads, the Brahma Sūtras, and the Gītā as its core canon. It is less a single doctrine than a conversation about one question: how does the individual self (ātman) stand in relation to ultimate reality (Brahman)? Different teachers answered that question in strikingly different ways, and each answer became a sub-school.",
+          children: [
+            { id: "advaita", name: "Advaita Vedānta", sanskrit: "Advaita",
+              summary: "A strict non-dualism: only Brahman is ultimately real, and all plurality is misperception.",
+              description: "Systematized by Śaṅkara in roughly the 8th century, Advaita argues that Brahman is the sole reality. The diverse world we seem to experience is māyā — not sheer illusion, but a beginningless superimposition whose apparent reality evaporates in correct knowledge. The self is not similar to Brahman; it is Brahman, and liberation is recognizing this." },
+            { id: "vishishtadvaita", name: "Viśiṣṭādvaita", sanskrit: "Viśiṣṭādvaita",
+              summary: "Qualified non-dualism: souls and world are real and form the body of a personal God.",
+              description: "Articulated by Rāmānuja in the 11th–12th centuries, this school agrees that reality is ultimately one but insists that the one has internal structure. Individual souls and the material world are real and dependent attributes of Brahman, understood as the personal deity. Liberation is eternal loving communion with God, not dissolution into an undifferentiated absolute." },
+            { id: "dvaita", name: "Dvaita", sanskrit: "Dvaita",
+              summary: "A strict dualism in which God, souls, and matter are eternally distinct.",
+              description: "Madhva in the 13th century pushed back hard against non-dualist readings of the Upaniṣads. For him, God (Viṣṇu) is supreme and fully other than both souls and matter. Souls are graded by capacity and depend entirely on divine grace. Liberation is a stable proximity to God, never a merger with God." },
+            { id: "dvaitadvaita", name: "Dvaitādvaita", sanskrit: "Bhedābheda",
+              summary: "A dualistic non-dualism in which souls and world are both different from and non-different from Brahman.",
+              description: "Nimbārka's school treats the relationship between the self and Brahman as genuinely twofold: different, because the individual is not the whole; non-different, because the individual has no being apart from the whole. A frequent analogy is a wave and the ocean. Devotion to Kṛṣṇa and Rādhā is central in practice." },
+            { id: "shuddhadvaita", name: "Śuddhādvaita", sanskrit: "Śuddhādvaita",
+              summary: "Pure non-dualism: the world is a real expression of Kṛṣṇa rather than an illusory appearance.",
+              description: "Vallabha in the 15th–16th centuries rejected the Advaitic notion that the world is unreal. In his view everything is a real manifestation of Kṛṣṇa. Liberation is attained through the path of grace (puṣṭi-mārga), in which the devotee depends wholly on divine favor rather than on their own effort or knowledge." },
+            { id: "acintya", name: "Acintya Bhedābheda", sanskrit: "Acintya-bhedābheda",
+              summary: "An 'inconceivable' simultaneous difference and non-difference between souls and the ultimate.",
+              description: "Associated with Caitanya in the 16th century and the Gauḍīya Vaiṣṇava tradition, this view holds that the relation between souls and Brahman is at once one of difference and non-difference, and that this relation is inconceivable — acintya — to ordinary reason. Devotion (bhakti) to Kṛṣṇa is the operative path." }
+          ]
+        }
+      ]
+    },
+    {
+      id: "nastika", name: "Heterodox Schools", sanskrit: "Nāstika",
+      summary: "Indian philosophical systems that do not grant the Vedas ultimate authority, developed in constant dialogue with the orthodox side.",
+      description: "The heterodox schools are grouped together more by what they reject than by what they share. Cārvāka, Jainism, and Buddhism each deny that the Vedas are the last word, but they proceed from very different assumptions about souls, persons, and the physical world. They were treated as serious philosophical interlocutors by the orthodox schools for centuries, and their arguments shape the classical Indian debates as much as any āstika text.",
+      children: [
+        { id: "carvaka", name: "Cārvāka", sanskrit: "Lokāyata",
+          summary: "A materialist, empiricist tradition that rejects the soul, karma, and the afterlife.",
+          description: "Cārvāka, also called Lokāyata, is the odd one out of classical Indian thought: a philosophy of the world you can see, hear, and touch. Its adherents accepted perception as the only reliable source of knowledge and were skeptical about inference when it reached beyond experience. They rejected a separate soul, denied rebirth, and placed the human good in a sensible pursuit of worldly pleasure. Most of what survives of them is preserved through the refutations of their critics." },
+        { id: "jain", name: "Jainism", sanskrit: "Jaina-darśana",
+          summary: "A pluralist tradition with an ethics of radical non-violence and an epistemology of many-sidedness.",
+          description: "Jain philosophy, shaped decisively by Mahāvīra in roughly the 6th century BCE, envisions a universe populated by countless eternal souls (jīvas) entangled with subtle karmic matter. Liberation demands a long ethical discipline centered on non-violence (ahiṃsā), truthfulness, and restraint. Its distinctive epistemology, anekāntavāda, argues that every claim is true only from a particular standpoint, so careful philosophy has to keep track of which standpoint it is speaking from." },
+        {
+          id: "buddhism", name: "Buddhism", sanskrit: "Bauddha-darśana",
+          summary: "A path founded by Siddhārtha Gautama that diagnoses existence as marked by impermanence, suffering, and non-self.",
+          description: "Buddhism begins with a medical framing: suffering exists, it has a cause, it can cease, and there is a path to its cessation. In philosophical terms this is spelled out as a careful analysis of what a person actually is — a stream of impermanent physical and mental events — and of how clinging to a stable self generates bondage. Over time Buddhism branched into several major streams that disagreed about metaphysics, practice, and the goal of the path.",
+          children: [
+            { id: "theravada", name: "Theravāda", sanskrit: "Theravāda",
+              summary: "The older conservative stream, preserved in Pāli, that emphasizes personal liberation through careful analysis of experience.",
+              description: "Theravāda — the 'teaching of the elders' — remains closest to the early Pāli canon. Its philosophical backbone is abhidhamma, a sustained project of breaking down experience into its smallest identifiable events and mapping their causal relations. The ideal figure is the arahant, a person who has seen through the illusion of self and extinguished the causes of rebirth." },
+            {
+              id: "mahayana", name: "Mahāyāna", sanskrit: "Mahāyāna",
+              summary: "The 'great vehicle' that centers the bodhisattva ideal and develops sophisticated metaphysics of emptiness and mind.",
+              description: "Mahāyāna emerged around the first centuries of the Common Era, foregrounding the bodhisattva — someone who postpones final liberation to work for the awakening of all beings. Its philosophical literature reworks the early tradition by arguing that even the building blocks of experience are themselves empty, and by analyzing the deep structure of consciousness that makes ordinary experience possible.",
+              children: [
+                { id: "madhyamaka", name: "Madhyamaka", sanskrit: "Madhyamaka",
+                  summary: "The 'middle way' school that argues all phenomena are empty of intrinsic existence.",
+                  description: "Founded by Nāgārjuna, Madhyamaka proceeds almost entirely by critique. Every positive philosophical thesis it encounters is pressed until it contradicts itself, and from these contradictions Nāgārjuna draws the conclusion that nothing has independent, self-standing existence. Things are real only as dependently originated and conceptually designated. The goal is not a new metaphysics but the loosening of every grasp at one." },
+                { id: "yogacara", name: "Yogācāra", sanskrit: "Vijñānavāda",
+                  summary: "The 'yoga practice' or 'mind-only' school that analyzes experience as structured by consciousness.",
+                  description: "Associated with Asaṅga and Vasubandhu, Yogācāra studies how experience is constructed by deep layers of consciousness, especially a basal storehouse mind that carries karmic residues and a secondary mind that produces the sense of being a subject facing an object. Liberation is the transformation of this basal mind so that the subject–object split ceases to organize experience." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "concepts", name: "Core Concepts", sanskrit: "Pariṣadāḥ",
+      summary: "Ideas that cut across almost every school and set the shared vocabulary of Indian philosophical debate.",
+      description: "Even when the schools disagree, they are disagreeing about largely the same concepts. This branch collects the ideas a reader encounters everywhere — what a person is, what binds them, and what it would mean to be free. Understanding these in outline makes the individual schools easier to follow, because each one is essentially a particular take on the same short list of problems.",
+      children: [
+        { id: "dharma", name: "Dharma", sanskrit: "Dharma",
+          summary: "A wide-ranging term for cosmic order, moral duty, righteousness, and whatever sustains a thing as itself.",
+          description: "Dharma is one of the richest and most context-sensitive terms in Indian thought. Depending on setting it can mean the impersonal order of the cosmos, a person's moral duty, the defining nature of a thing, or the teaching of a tradition. Part of learning the vocabulary is learning to read which sense is operative in a given passage." },
+        { id: "karma", name: "Karma", sanskrit: "Karma",
+          summary: "The causal principle that intentional actions leave residues that shape later experience.",
+          description: "In its philosophical use karma is not fate; it is a precise, if disputed, claim about causation. Intentional actions leave a trace in the psychological or cosmic order, and that trace eventually ripens into an experience of the same moral flavor. The schools disagree on the exact mechanism — a subtle body, an unseen potency, a storehouse consciousness — but almost all of them take karma as a working assumption." },
+        { id: "samsara", name: "Saṃsāra", sanskrit: "Saṃsāra",
+          summary: "The beginningless cycle of birth, death, and rebirth driven by karma and ignorance.",
+          description: "Saṃsāra names the predicament every Indian philosophical school is trying to solve. So long as there is grasping and ignorance, actions generate consequences that generate further actions, and the cycle continues across lifetimes. Releasing someone from saṃsāra is the practical target of almost every Indian metaphysics." },
+        { id: "moksha", name: "Mokṣa", sanskrit: "Mokṣa / Mukti",
+          summary: "Liberation: the final, irreversible end of bondage and suffering.",
+          description: "Mokṣa is the goal, but what kind of goal it is varies dramatically by school. Advaita describes it as recognition that the self was never other than Brahman. Sāṃkhya presents it as the isolation of consciousness from matter. Theistic Vedānta paints it as loving proximity to a personal God. Buddhism, reframing the whole question, speaks instead of nirvāṇa — the extinguishing of the fires of craving." },
+        { id: "atman", name: "Ātman", sanskrit: "Ātman",
+          summary: "The self or subject of experience — defended, redefined, or denied depending on the school.",
+          description: "Ātman is whatever plays the role of 'self' in a given philosophy. Advaita identifies it with Brahman. Sāṃkhya treats it as a plurality of pure, witnessing consciousnesses. Vaiśeṣika treats it as one of the substances that populate reality. Buddhism, famously, argues that there is no such enduring thing at all, and that what looks like a self is really a stream of interrelated events." },
+        { id: "brahman", name: "Brahman", sanskrit: "Brahman",
+          summary: "The ultimate reality of Upaniṣadic thought — infinite, uncaused, and the ground of everything.",
+          description: "Brahman is the concept the Upaniṣads bequeath to Vedānta. It is described both without qualities (nirguṇa), as the bare ground of being, and with qualities (saguṇa), as a personal God who creates and sustains the world. How the individual self relates to Brahman is the organizing question of every Vedāntic school." },
+        { id: "pramana", name: "Pramāṇas", sanskrit: "Pramāṇa",
+          summary: "The accepted instruments of valid knowledge — the sources a school will allow a philosopher to appeal to.",
+          description: "Classical Indian epistemology is built around an explicit list of pramāṇas. Schools differ on which sources they admit: perception alone for Cārvāka; perception and inference for Buddhism; perception, inference, comparison, and testimony for Nyāya; plus postulation and non-apprehension in Mīmāṃsā. The list a school accepts largely decides what it can prove." },
+        { id: "purusartha", name: "Puruṣārthas", sanskrit: "Puruṣārtha",
+          summary: "The four legitimate aims of human life: duty, material welfare, pleasure, and liberation.",
+          description: "The puruṣārthas — dharma, artha, kāma, and mokṣa — structure the classical Hindu account of a good life. Duty, material welfare, and pleasure are to be pursued in an ordered balance, and liberation is the aim that eventually subsumes the others. The scheme provides a framework in which philosophical and practical concerns are expected to fit together rather than compete." }
+      ]
+    }
+  ]
+};
+
+// ================================================================
+// FAQ data (beta corpus beyond the tree)
+// ================================================================
+
+const faqs = [
+  { id: "faq-trimurti", name: "Trimūrti", sanskrit: "Trimūrti",
+    summary: "The classical triad of Brahmā, Viṣṇu, and Śiva representing the cosmic functions of creation, preservation, and dissolution.",
+    description: "The Trimūrti is a theological framework in which the ultimate reality is expressed through three personal deities. Brahmā creates, Viṣṇu sustains and rescues the order of the world, and Śiva dissolves so that creation can begin again. Different traditions elevate one of the three as supreme — Vaiṣṇavas treat Viṣṇu as the ultimate, Śaivas treat Śiva that way, and Śāktas give that role to the Goddess, who is sometimes treated as the power behind all three." },
+  { id: "faq-avatars", name: "Avatars of Viṣṇu", sanskrit: "Daśāvatāra",
+    summary: "The classical ten descents of Viṣṇu into the world, each undertaken to restore dharma when the world is out of balance.",
+    description: "The avatar doctrine holds that God periodically enters the world in a particular form to protect the good, defeat forces that threaten order, and re-establish right living. The ten traditional descents — Matsya, Kūrma, Varāha, Narasiṃha, Vāmana, Paraśurāma, Rāma, Kṛṣṇa, Buddha, and Kalki — span fish, tortoise, boar, man-lion, dwarf, warrior-brahmin, prince, cowherd-teacher, sage, and future judge. Rāma and Kṛṣṇa in particular became the focus of vast devotional literatures." },
+  { id: "faq-gunas", name: "Three Guṇas", sanskrit: "Guṇa",
+    summary: "Three fundamental qualities or strands of matter — sattva, rajas, and tamas — whose mixture accounts for the character of every material thing.",
+    description: "Sāṃkhya analyzes prakṛti, the material side of reality, as a constant interplay of three guṇas. Sattva is clarity, lightness, and intelligibility; rajas is motion, restlessness, and drive; tamas is inertia, heaviness, and obscurity. Every object, every food, every mood is a mixture of the three in some proportion. The Gītā applies the scheme to describe kinds of action, kinds of knowledge, and even kinds of personality." },
+  { id: "faq-ashramas", name: "Four Āśramas", sanskrit: "Āśrama",
+    summary: "The four classical stages of life: student, householder, forest-dweller, and renunciant.",
+    description: "The āśrama scheme imagines an ideal life as four sequential stages. The student (brahmacārin) learns from a teacher. The householder (gṛhastha) earns, marries, raises a family, and supports the other three stages through their labor. The forest-dweller (vānaprastha) withdraws gradually from social roles. The renunciant (saṃnyāsin) lets go of worldly ties entirely in pursuit of liberation. In practice the scheme is an idealization more than a description, but it powerfully structures how dharmic texts talk about time and obligation." },
+  { id: "faq-yogas", name: "Three Paths of the Gītā", sanskrit: "Karma, Jñāna, Bhakti",
+    summary: "The Bhagavad Gītā's three interwoven paths to liberation: selfless action, contemplative knowledge, and loving devotion.",
+    description: "Karma yoga is action undertaken without clinging to its fruits — duty performed as offering rather than as a means to personal gain. Jñāna yoga is the discernment of the true self through study and reflection, loosening the grip of false identification. Bhakti yoga is a focused, affectionate relationship with a chosen form of the divine, in which devotion itself transforms the devotee. Most commentators read the Gītā as recommending all three as mutually reinforcing rather than as competing alternatives." },
+  { id: "faq-shankara", name: "Ādi Śaṅkara", sanskrit: "Śaṅkarācārya",
+    summary: "The eighth-century philosopher who systematized Advaita Vedānta and founded monastic institutions across India.",
+    description: "Śaṅkara is remembered as the architect of rigorous Advaita. In a short life — traditional accounts say thirty-two years — he wrote influential commentaries on the Upaniṣads, the Brahma Sūtras, and the Gītā, and a number of shorter works aimed at teaching non-dualism step by step. He is also credited with founding four maṭhas (monasteries) at the cardinal directions of the subcontinent, institutions whose successor lineages still carry his name." },
+  { id: "faq-ramanuja", name: "Rāmānuja", sanskrit: "Rāmānujācārya",
+    summary: "The eleventh–twelfth century teacher who articulated Viśiṣṭādvaita and gave theistic Vedānta a rigorous philosophical footing.",
+    description: "Rāmānuja is the decisive figure for Śrī Vaiṣṇavism. Against strict non-dualism he argued that souls and world are real and form, in a precise sense, the body of God. His commentaries on the Gītā and Brahma Sūtras argue that the Upaniṣads, read carefully, support a personal theism in which loving surrender to Viṣṇu-Nārāyaṇa is the path to liberation. He was also a notable reformer, opening temple worship and teaching to communities that had been excluded from it." },
+  { id: "faq-madhva", name: "Madhva", sanskrit: "Madhvācārya",
+    summary: "The thirteenth-century teacher who founded Dvaita Vedānta, defending a strict plurality of God, souls, and matter.",
+    description: "Madhva pushed hard against any reading of the Upaniṣads that collapsed the distinction between the self and God. In his system God (Viṣṇu) is supreme and fully different from both souls and matter; souls are eternally graded; and the world is real. Liberation is not merger but stable, differentiated proximity to God through grace. Madhva founded the Udupi lineage, which still administers a famous Kṛṣṇa temple and related institutions." },
+  { id: "faq-buddha", name: "Siddhārtha Gautama (the Buddha)", sanskrit: "Buddha",
+    summary: "The teacher, born in the fifth or sixth century BCE, whose diagnosis of suffering and path to its cessation launched Buddhism.",
+    description: "Traditional accounts describe Siddhārtha as a sheltered prince who leaves his palace, confronts old age, sickness, and death, and undertakes a long search for a path out of suffering. He rejects extreme asceticism in favor of a 'middle way' of ethical conduct, meditation, and discernment. His teaching — the four noble truths and the noble eightfold path — becomes the seed of all later Buddhist schools." },
+  { id: "faq-vivekananda", name: "Swami Vivekananda", sanskrit: "Vivekānanda",
+    summary: "A late-nineteenth-century monk and reformer who presented Vedānta to a global audience and helped shape modern Hindu self-understanding.",
+    description: "Vivekananda, a disciple of the Bengali mystic Ramakrishna, became famous for his speeches at the 1893 Parliament of the World's Religions in Chicago. He argued for a Hinduism centered on the realization of a divine self in every person and linked that metaphysical vision to a program of social service and education. His writings and the Ramakrishna Mission he founded remain major influences on modern Indian religious life." },
+  { id: "faq-nirvana-moksha", name: "Nirvāṇa vs. Mokṣa", sanskrit: "Nirvāṇa / Mokṣa",
+    summary: "Two overlapping but distinct ways of naming liberation — one from Buddhist, one from Hindu vocabularies.",
+    description: "Both terms describe the end of bondage to the cycle of birth and death, but they carry different commitments. Mokṣa, in most Hindu schools, is the realization of a self that was always free — either as Brahman, as pure consciousness distinct from matter, or as a soul in loving union with God. Nirvāṇa, in Buddhist usage, is the extinguishing of the fires of craving, hatred, and delusion — and the early Buddhist tradition is careful not to assert a permanent self doing the liberating. The difference is small in practical emphasis but large in metaphysics." },
+  { id: "faq-karma-yoga", name: "Karma Yoga", sanskrit: "Karma-yoga",
+    summary: "The discipline of action performed as duty, without clinging to its outcomes.",
+    description: "Karma yoga, taught most memorably in the Gītā, reframes everyday work as spiritual practice. The problem is not action itself but attachment to the fruits of action. When duty is done wholeheartedly as offering, without grasping at success or fleeing from failure, the residue that normally binds a person to saṃsāra does not form. In later devotional literature this is often folded together with bhakti so that action is offered to a chosen form of God." },
+  { id: "faq-bhakti-yoga", name: "Bhakti Yoga", sanskrit: "Bhakti-yoga",
+    summary: "The path of loving devotion to a personal deity as the central spiritual discipline.",
+    description: "Bhakti yoga is the approach in which relationship itself — a sustained, emotionally warm love directed at a chosen form of God — is the transformative engine. The Gītā frames bhakti as accessible to anyone, regardless of learning or social position. The medieval bhakti movements across north and south India produced an enormous body of devotional poetry in regional languages and decisively shaped popular Hindu religious life." },
+  { id: "faq-jnana-yoga", name: "Jñāna Yoga", sanskrit: "Jñāna-yoga",
+    summary: "The path of discerning knowledge in which philosophical insight is the engine of liberation.",
+    description: "Jñāna yoga works by removing misidentification. Through study of texts under a teacher, sustained reflection, and meditative absorption on the nature of the self, the practitioner loosens their grip on false layers of identity — body, emotion, social role — until what remains is the witness that the Upaniṣads call ātman. In Advaita this witness is recognized as non-different from Brahman." },
+  { id: "faq-bhakti-movement", name: "The Bhakti Movement", sanskrit: "Bhakti Movement",
+    summary: "A wave of devotional religious poetry and practice that reshaped Hinduism across India from roughly the seventh to the seventeenth centuries.",
+    description: "Beginning in the Tamil south and spreading north over many centuries, the bhakti movement produced poets and saints who sang in regional languages about direct, intimate love of a personal God. Figures like Āṇṭāḷ, Basava, Mirabai, Kabir, Tulsidas, and Caitanya reworked Hindu practice around accessible devotion rather than learned ritual, often challenging rigid social hierarchies in the process. The movement decisively shaped the Vaiṣṇava and Śaiva sub-schools that still dominate popular Hindu life." },
+  { id: "faq-monotheism", name: "Hinduism and monotheism", sanskrit: "Ekatva, Bahutva",
+    summary: "A sketch of how Hindu traditions relate the many gods to a single ultimate.",
+    description: "Hinduism is often described as polytheistic, but that's a partial reading. Most classical schools treat the many deities as faces or powers of a single ultimate reality. Advaita identifies that ultimate with an impersonal Brahman. Viśiṣṭādvaita identifies it with a personal God whose body is all souls and world. Śākta traditions identify it with the Goddess. The many gods are then not competitors but coordinated expressions of the one, addressable by anyone who finds a particular form congenial." },
+  { id: "faq-puranas", name: "Purāṇas", sanskrit: "Purāṇa",
+    summary: "A genre of expansive narrative scripture that tells the mythic history of gods, worlds, and dynasties.",
+    description: "The Purāṇas are long compendia composed and edited over many centuries. They tell origin stories, recount the deeds of avatars, lay out cosmology and geography, and set out devotional frameworks for particular deities. The eighteen 'great' Purāṇas and many 'minor' ones are the main popular source for the stories most Hindus grow up with, and they shape temple worship and festival calendars across India." },
+  { id: "faq-mahabharata", name: "Mahābhārata", sanskrit: "Mahābhārata",
+    summary: "The great Sanskrit epic centered on a dynastic war between the Pāṇḍavas and Kauravas, containing the Bhagavad Gītā.",
+    description: "The Mahābhārata is an immense composite work that frames a catastrophic family war as the occasion for extended reflection on duty, kinship, and divine agency. It contains independent philosophical texts — most famously the Bhagavad Gītā — and long discourses on dharma, law, and governance. Its sheer narrative range has made it a continually reinterpreted touchstone of Indian moral and political thought." },
+  { id: "faq-ramayana", name: "Rāmāyaṇa", sanskrit: "Rāmāyaṇa",
+    summary: "The Sanskrit epic of Prince Rāma, whose virtues and exile became a template for ideal human and political conduct.",
+    description: "Ascribed to the sage Vālmīki, the Rāmāyaṇa tells the story of Rāma's exile, the abduction of Sītā by the demon-king Rāvaṇa, and the war to recover her. Over centuries the story was retold in many Indian languages — most influentially by Tulsidas in Avadhī — and carried across South and Southeast Asia. Rāma's conduct is often held up as a standard for ideal kingship, marriage, and loyalty, though modern readers also read the epic critically." },
+  { id: "faq-chakras", name: "Chakras", sanskrit: "Cakra",
+    summary: "Energy centers arranged along a subtle channel, used in tantric and haṭha-yoga maps of the body.",
+    description: "The chakra schema, most familiar from tantric and later haṭha-yoga literature, describes a subtle body in which a central channel runs along the spine and intersects with focal points at specific locations — typically seven in the most popular version, from the base of the spine to the crown of the head. Practices using visualization, mantra, breath, and posture aim to awaken and guide subtle energy through these points, with effects described in both psychological and metaphysical terms." },
+  { id: "faq-maya", name: "Māyā", sanskrit: "Māyā",
+    summary: "The principle by which the one real is experienced as the many — often translated as illusion, but more accurately a kind of constructive appearance.",
+    description: "In Advaita, māyā is what makes a single reality appear as a diverse world of separate selves and objects. It is not mere illusion in the sense of hallucination; it is a power of appearing that is beginningless, real enough to structure ordinary experience, and yet cancelled in the knowledge that recognizes Brahman alone as ultimately real. Other schools use the term more narrowly or reject it as a metaphysical posit." },
+  { id: "faq-om", name: "Om (Auṃ)", sanskrit: "Auṃ / Oṃ",
+    summary: "The primordial sound-syllable that both represents and, in some accounts, enacts the ultimate reality.",
+    description: "Om is the most loaded single syllable in Indian religious practice. The Upaniṣads read it as containing the whole of reality in compressed form — its three phonemes marking waking, dreaming, and deep sleep, with silence beyond the syllable pointing to a fourth, pure awareness. It opens mantras, frames meditations, and marks the beginning and end of recited texts across nearly every Hindu, Buddhist, and Jain tradition." }
+];
+
+// ================================================================
+// Answer engine (offline)
+// ================================================================
+
+const STOPWORDS = new Set([
+  "a","an","the","is","are","was","were","be","been","being","of","in","on","at","to","for","with","by","about","from",
+  "and","or","but","so","than","what","who","which","where","when","why","how","do","does","did","can","could","would",
+  "should","may","might","will","shall","have","has","had","tell","me","you","your","my","mine","our","we","i",
+  "this","that","these","those","it","its","there","here","please","kindly","ohmm","hi","hello","hey",
+  "namaste","namaskar","explain","describe","define","meaning","vs","versus","compare","comparison","between","difference",
+  "like","just","really","very","also","some","any","all","each","s"
+]);
+
+function stripDiacritics(s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+function normalize(s) {
+  return stripDiacritics(String(s || "").toLowerCase())
+    .replace(/[^\w\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+function looseVariants(w) {
+  const out = new Set([w]);
+  if (/sh/.test(w)) out.add(w.replace(/sh/g, "s"));
+  if (/ksh/.test(w)) out.add(w.replace(/ksh/g, "ks"));
+  out.add(w.replace(/([aeiou])\1+/g, "$1"));
+  return [...out];
+}
+function tokens(s) {
+  if (!s) return [];
+  const base = normalize(s).split(" ").filter(w => w && w.length > 1 && !STOPWORDS.has(w));
+  if (base.length === 0) {
+    return normalize(s).split(" ").filter(w => w && w.length >= 2);
+  }
+  return base;
+}
+function expandTokens(qt) {
+  const out = [];
+  for (const t of qt) for (const v of looseVariants(t)) out.push(v);
+  return Array.from(new Set(out));
+}
+
+function flattenHierarchy(node, acc) {
+  acc.push({
+    id: node.id, kind: "node",
+    name: node.name, sanskrit: node.sanskrit || "",
+    summary: node.summary || "", description: node.description || "",
+    children: Array.isArray(node.children) ? node.children.map(c => ({ id: c.id, name: c.name })) : []
+  });
+  if (Array.isArray(node.children)) node.children.forEach(c => flattenHierarchy(c, acc));
+  return acc;
+}
+
+const corpus = (() => {
+  const fromTree = flattenHierarchy(hierarchy, []);
+  const fromFaqs = faqs.map(f => ({
+    id: f.id, kind: "faq",
+    name: f.name, sanskrit: f.sanskrit || "",
+    summary: f.summary || "", description: f.description || "",
+    children: []
+  }));
+  return [...fromTree, ...fromFaqs].map(e => ({
+    ...e,
+    _nameTokens: tokens(e.name + " " + e.sanskrit),
+    _summaryTokens: tokens(e.summary),
+    _descTokens: tokens(e.description)
+  }));
+})();
+
+const byId = new Map(corpus.map(e => [e.id, e]));
+
+function scoreEntry(entry, qTokens) {
+  let score = 0;
+  for (const t of qTokens) {
+    if (entry._nameTokens.includes(t)) score += 10;
+    if (entry._summaryTokens.includes(t)) score += 3;
+    if (entry._descTokens.includes(t)) score += 1;
+  }
+  const qJoined = qTokens.join(" ");
+  if (qJoined && normalize(entry.name).includes(qJoined)) score += 6;
+  return score;
+}
+
+function rank(qTokens, limit) {
+  if (!qTokens.length) return [];
+  limit = limit || 5;
+  const expanded = expandTokens(qTokens);
+  return corpus.map(e => ({ entry: e, score: scoreEntry(e, expanded) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+function looksLikeGreeting(q) { return /^\s*(hi|hello|hey|namaste|namaskar|ohmm+|ohm+|om+|aum+)\b/i.test(q.trim()); }
+function looksLikeCapability(q) {
+  const n = normalize(q);
+  return /who are you/.test(n) || /what can you do/.test(n) || /^help( me)?$/.test(n) || /what do you know/.test(n);
+}
+function looksLikeThanks(q) { return /^(thanks?|thank you|ty)\b/i.test(q.trim()); }
+function looksLikeList(q) {
+  const n = normalize(q);
+  return /list.*(school|darshan|darsana)/.test(n) || /what are the.*(school|darshan|six)/.test(n) ||
+         /six.*(school|darshan|darsana)/.test(n) || /orthodox.*(school|darshan)/.test(n) ||
+         /heterodox.*(school|darshan)/.test(n);
+}
+function looksLikeCompare(q) {
+  const n = normalize(q);
+  if (/^(compare|contrast)\b/.test(n)) return true;
+  if (/\bdifference\b/.test(n)) return true;
+  if (/\bvs\b|\bversus\b/.test(n)) return true;
+  if (/ and /.test(n) && (/differ/.test(n) || /compar/.test(n))) return true;
+  return false;
+}
+
+function composeSingle(e) {
+  const head = e.sanskrit && e.sanskrit !== e.name ? `${e.name} (${e.sanskrit}):` : `${e.name}:`;
+  const body = e.summary ? `${e.summary}${e.description ? "\n\n" + e.description : ""}` : (e.description || "No extended description.");
+  return `${head} ${body}`;
+}
+function composeComparison(a, b) {
+  const aHead = a.sanskrit && a.sanskrit !== a.name ? `${a.name} (${a.sanskrit})` : a.name;
+  const bHead = b.sanskrit && b.sanskrit !== b.name ? `${b.name} (${b.sanskrit})` : b.name;
+  const aBody = a.summary || a.description || "";
+  const bBody = b.summary || b.description || "";
+  return [`${aHead}: ${aBody}`, `${bHead}: ${bBody}`, "Each entry's side panel has a longer discussion."].join("\n\n");
+}
+function ref(id) {
+  const e = byId.get(id);
+  if (!e) return null;
+  return { id: e.id, name: e.name, kind: e.kind };
+}
+function defaultSuggestions() {
+  return ["What is Advaita Vedānta?", "Compare Sāṃkhya and Yoga", "Difference between mokṣa and nirvāṇa", "Who was Śaṅkara?", "What are the three guṇas?"];
+}
+function relatedSuggestions(entries) {
+  const out = [];
+  entries.forEach(e => (e.children || []).slice(0, 2).forEach(c => out.push(`What is ${c.name}?`)));
+  if (out.length < 3) defaultSuggestions().forEach(s => { if (out.length < 4) out.push(s); });
+  return Array.from(new Set(out)).slice(0, 4);
+}
+
+function answer(question) {
+  const raw = String(question || "").trim();
+  if (!raw) return { kind: "empty", text: "Ask me anything about Hindu philosophy — schools, teachers, concepts, or texts.", suggestions: defaultSuggestions() };
+  if (looksLikeGreeting(raw) && raw.length < 30) return { kind: "greeting", text: "Namaste. I'm Ohmm, a guide to the schools, concepts, and texts of Hindu philosophy. What would you like to explore?", suggestions: defaultSuggestions() };
+  if (looksLikeThanks(raw)) return { kind: "thanks", text: "Of course. Ask me another — I have time.", suggestions: defaultSuggestions() };
+  if (looksLikeCapability(raw)) return { kind: "capability", text: "I can talk about the six orthodox schools (Nyāya, Vaiśeṣika, Sāṃkhya, Yoga, Mīmāṃsā, Vedānta) and their sub-schools, the heterodox systems (Cārvāka, Jainism, Buddhism with Theravāda, Mahāyāna, Madhyamaka, Yogācāra), core concepts like dharma, karma, saṃsāra, mokṣa, ātman, and Brahman, foundational texts, and major teachers. Try a 'what is…' or 'compare X and Y' question.", suggestions: defaultSuggestions() };
+  if (looksLikeList(raw)) return {
+    kind: "list",
+    text: "The six orthodox schools, traditionally grouped in three pairs, are Nyāya and Vaiśeṣika, Sāṃkhya and Yoga, and Mīmāṃsā and Vedānta. The main heterodox systems are Cārvāka, Jainism, and Buddhism. Tap any to dive in.",
+    picks: [ref("nyaya"), ref("vaisesika"), ref("samkhya"), ref("yoga"), ref("mimamsa"), ref("vedanta"), ref("carvaka"), ref("jain"), ref("buddhism")].filter(Boolean)
+  };
+
+  const qTokens = tokens(raw);
+  if (looksLikeCompare(raw)) {
+    const ranked = rank(qTokens, 8);
+    if (ranked.length >= 2) {
+      const a = ranked[0].entry, b = ranked[1].entry;
+      return { kind: "compare", text: composeComparison(a, b), picks: [ref(a.id), ref(b.id)].filter(Boolean), suggestions: relatedSuggestions([a, b]) };
+    }
+  }
+
+  const ranked = rank(qTokens, 4);
+  if (!ranked.length) return { kind: "unknown", text: "I don't have a clear match for that yet. In beta I only have the topics built into the tree and a curated FAQ set. Try asking about a specific school, teacher, text, or concept.", suggestions: defaultSuggestions() };
+
+  const top = ranked[0].entry;
+  const runnerUp = ranked[1] && ranked[1].entry;
+  const gap = ranked[0].score - (ranked[1] ? ranked[1].score : 0);
+  if (runnerUp && gap < 4 && top.id !== runnerUp.id) {
+    return {
+      kind: "best-guess",
+      text: composeSingle(top) + "\n\nIf you meant " + runnerUp.name + ", ask again with that name and I'll give you its summary.",
+      picks: [ref(top.id), ref(runnerUp.id)].filter(Boolean),
+      suggestions: relatedSuggestions([top, runnerUp])
+    };
+  }
+  return { kind: "match", text: composeSingle(top), picks: [ref(top.id)].filter(Boolean), suggestions: relatedSuggestions([top]) };
+}
+
+// ================================================================
+// Tree helpers
+// ================================================================
+
+const BRANCH_COLORS = { root: "#b8860b", texts: "#2a7ab0", astika: "#c2572b", nastika: "#7b3aa8", concepts: "#2e8b57" };
+function branchColor(node) {
+  let c = node;
+  while (c) { if (BRANCH_COLORS[c.data.id]) return BRANCH_COLORS[c.data.id]; c = c.parent; }
+  return "#444";
+}
+function toggle(d) {
+  if (d.children) { d._children = d.children; d.children = null; }
+  else if (d._children) { d.children = d._children; d._children = null; }
+}
+function collapseBelowDepth(d, maxDepth) {
+  if (d.depth >= maxDepth && d.children) { d._children = d.children; d.children = null; }
+  const kids = d.children || d._children;
+  if (kids) kids.forEach(c => collapseBelowDepth(c, maxDepth));
+}
+function findNode(node, id) {
+  if (node.id === id) return node;
+  if (!node.children) return null;
+  for (const c of node.children) { const h = findNode(c, id); if (h) return h; }
+  return null;
+}
+
+// ================================================================
+// Tree component
+// ================================================================
+
+const HALO_FILL = "#f9f4e9";
+const TRANSITION_MS = 550;
+const EASE = d3.easeCubicInOut;
+
+function HierarchyTree({ data, selectedId, onSelect }) {
+  const svgRef = useRef(null);
+  const gRef = useRef(null);
+  const rootRef = useRef(null);
+  const selectedRef = useRef(selectedId);
+  const onSelectRef = useRef(onSelect);
+  const hoverRef = useRef(null);
+
+  useEffect(() => { selectedRef.current = selectedId; }, [selectedId]);
+  useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
+
+  useEffect(() => {
+    const svg = d3.select(svgRef.current);
+    const g = d3.select(gRef.current);
+    const root = d3.hierarchy(data);
+    root.x0 = 0; root.y0 = 0;
+    collapseBelowDepth(root, 2);
+    rootRef.current = root;
+
+    const zoom = d3.zoom().scaleExtent([0.3, 2.5]).on("zoom", ev => { g.attr("transform", ev.transform); });
+    svg.call(zoom);
+    const { height, width } = svgRef.current.getBoundingClientRect();
+    const initialScale = width < 600 ? 0.75 : 0.9;
+    svg.transition().duration(400).ease(EASE)
+       .call(zoom.transform, d3.zoomIdentity.translate(60, height / 2).scale(initialScale));
+
+    render(root);
+    const onResize = () => render(rootRef.current);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [data]);
+
+  useEffect(() => { if (rootRef.current) render(rootRef.current); }, [selectedId]);
+
+  function labelWeight(d) { return d.data.id === selectedRef.current ? 700 : 500; }
+  function labelFill(d) { return d.data.id === selectedRef.current ? branchColor(d) : "#2a241c"; }
+  function circleFill(d) {
+    if (d._children) return branchColor(d);
+    return d.data.id === selectedRef.current ? branchColor(d) : "#ffffff";
+  }
+  function circleRadius(d) {
+    if (d.data.id === selectedRef.current) return 9;
+    if (d.data.id === hoverRef.current) return 7.5;
+    return 6;
+  }
+
+  function render(root, source) {
+    const g = d3.select(gRef.current);
+    // Responsive spacing
+    const w = (svgRef.current && svgRef.current.getBoundingClientRect().width) || 1200;
+    const dx = w < 600 ? 30 : 36;
+    const dy = w < 600 ? 170 : (w < 960 ? 200 : 230);
+    d3.tree().nodeSize([dx, dy])(root);
+
+    const nodes = root.descendants();
+    const links = root.links();
+    const originX = source ? source.x0 : root.x;
+    const originY = source ? source.y0 : root.y;
+
+    const linkGen = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+    const link = g.selectAll("path.link").data(links, d => d.target.data.id);
+
+    const linkEnter = link.enter().append("path").attr("class", "link")
+      .attr("fill", "none").attr("stroke", "#c9bfae")
+      .attr("stroke-opacity", 0.7).attr("stroke-width", 1.5)
+      .attr("stroke-linecap", "round")
+      .attr("d", () => { const o = { x: originX, y: originY }; return linkGen({ source: o, target: o }); });
+
+    linkEnter.merge(link).transition().duration(TRANSITION_MS).ease(EASE)
+      .attr("stroke-opacity", 0.7)
+      .attr("d", d => linkGen({ source: d.source, target: d.target }));
+
+    link.exit().transition().duration(TRANSITION_MS).ease(EASE)
+      .attr("stroke-opacity", 0)
+      .attr("d", () => { const o = { x: source ? source.x : root.x, y: source ? source.y : root.y }; return linkGen({ source: o, target: o }); })
+      .remove();
+
+    const node = g.selectAll("g.node").data(nodes, d => d.data.id);
+    const nodeEnter = node.enter().append("g").attr("class", "node")
+      .attr("transform", () => `translate(${originY},${originX})`)
+      .style("cursor", "pointer").style("opacity", 0)
+      .on("click", (ev, d) => {
+        ev.stopPropagation();
+        const id = d.data.id;
+        const sel = selectedRef.current === id;
+        const has = !!(d.children || d._children);
+        if (sel && has) { toggle(d); render(rootRef.current, d); }
+        else { onSelectRef.current(id); }
+      })
+      .on("mouseenter", (ev, d) => {
+        hoverRef.current = d.data.id;
+        d3.select(ev.currentTarget).select("circle")
+          .transition().duration(150).ease(EASE).attr("r", circleRadius(d));
+      })
+      .on("mouseleave", (ev, d) => {
+        if (hoverRef.current === d.data.id) hoverRef.current = null;
+        d3.select(ev.currentTarget).select("circle")
+          .transition().duration(200).ease(EASE).attr("r", circleRadius(d));
+      });
+
+    nodeEnter.append("circle").attr("r", 0).attr("stroke-width", 2);
+
+    nodeEnter.append("text").attr("class", "label-halo")
+      .attr("dy", "0.32em")
+      .attr("x", d => d.children || d._children ? -14 : 14)
+      .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+      .text(d => d.data.name)
+      .attr("fill", HALO_FILL).attr("stroke", HALO_FILL).attr("stroke-width", 5)
+      .attr("stroke-linejoin", "round").attr("paint-order", "stroke");
+
+    nodeEnter.append("text").attr("class", "label")
+      .attr("dy", "0.32em")
+      .attr("x", d => d.children || d._children ? -14 : 14)
+      .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+      .text(d => d.data.name);
+
+    const nodeUpdate = nodeEnter.merge(node);
+    nodeUpdate.transition().duration(TRANSITION_MS).ease(EASE)
+      .style("opacity", 1)
+      .attr("transform", d => `translate(${d.y},${d.x})`);
+    nodeUpdate.select("circle").transition().duration(TRANSITION_MS).ease(EASE)
+      .attr("fill", circleFill).attr("stroke", d => branchColor(d)).attr("r", circleRadius);
+    nodeUpdate.select("text.label-halo").transition().duration(TRANSITION_MS).ease(EASE).attr("font-weight", labelWeight);
+    nodeUpdate.select("text.label").transition().duration(TRANSITION_MS).ease(EASE)
+      .attr("font-weight", labelWeight).attr("fill", labelFill);
+
+    node.exit().transition().duration(TRANSITION_MS).ease(EASE)
+      .attr("transform", () => `translate(${source ? source.y : root.y},${source ? source.x : root.x})`)
+      .style("opacity", 0).remove();
+
+    root.eachBefore(d => { d.x0 = d.x; d.y0 = d.y; });
+  }
+
+  return (
+    <div className="tree-wrap">
+      <svg ref={svgRef} className="tree-svg" role="img" aria-label="Hindu philosophy hierarchy">
+        <g ref={gRef} />
+      </svg>
+    </div>
+  );
+}
+
+// ================================================================
+// Detail panel
+// ================================================================
+
+function DetailPanel({ node }) {
+  if (!node) return <div className="detail empty"><p>Select a node on the left to read about it.</p></div>;
+  const paragraphs = String(node.description || "").split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+  return (
+    <article className="detail">
+      <header className="detail-head">
+        {node.sanskrit && <div className="detail-sanskrit">{node.sanskrit}</div>}
+        <h2>{node.name}</h2>
+        {node.summary && <p className="detail-summary">{node.summary}</p>}
+      </header>
+      {paragraphs.length > 0 && <section className="detail-body">{paragraphs.map((p, i) => <p key={i}>{p}</p>)}</section>}
+      {Array.isArray(node.children) && node.children.length > 0 && (
+        <section className="detail-children">
+          <h3>Branches</h3>
+          <ul>
+            {node.children.map(c => (
+              <li key={c.id}>
+                <span className="child-name">{c.name}</span>
+                {c.sanskrit && <span className="child-sanskrit"> · {c.sanskrit}</span>}
+                {c.summary && <p className="child-summary">{c.summary}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </article>
+  );
+}
+
+// ================================================================
+// Ohmm chat
+// ================================================================
+
+function getSpeechRecognition() {
+  if (typeof window === "undefined") return null;
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function OhmmChat({ open, onClose, onPick }) {
+  const initial = [{
+    id: "m0",
+    role: "bot",
+    text: "Namaste — I'm Ohmm. Ask me anything about Hindu philosophy, from the six darśanas to mokṣa, or try one of these:",
+    suggestions: ["What is Advaita Vedānta?", "Compare Sāṃkhya and Yoga", "Who was Śaṅkara?", "What is the difference between mokṣa and nirvāṇa?"]
+  }];
+  const [messages, setMessages] = useState(initial);
+  const [input, setInput] = useState("");
+  const [listening, setListening] = useState(false);
+  const [status, setStatus] = useState("");
+  const bodyRef = useRef(null);
+  const inputRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const counterRef = useRef(1);
+  const uid = () => { counterRef.current += 1; return "m" + counterRef.current + "_" + Math.random().toString(36).slice(2, 8); };
+
+  useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; }, [messages, open]);
+  useEffect(() => {
+    if (open && inputRef.current) { const t = setTimeout(() => inputRef.current.focus(), 150); return () => clearTimeout(t); }
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  function send(text) {
+    const q = String(text == null ? input : text).trim();
+    if (!q) return;
+    const userMsg = { id: uid(), role: "user", text: q };
+    const reply = answer(q);
+    const botMsg = { id: uid(), role: "bot", text: reply.text, picks: reply.picks || [], suggestions: reply.suggestions || [] };
+    setMessages(prev => [...prev, userMsg, botMsg]);
+    setInput("");
+  }
+
+  function onInputKey(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }
+
+  function toggleDictation() {
+    const Rec = getSpeechRecognition();
+    if (!Rec) { setStatus("Voice input isn't supported in this browser."); return; }
+    if (listening) { try { recognitionRef.current && recognitionRef.current.stop(); } catch (_) {} setListening(false); return; }
+    const rec = new Rec();
+    rec.lang = "en-US"; rec.interimResults = true; rec.continuous = false;
+    let finalTranscript = "";
+    rec.onstart = () => { setListening(true); setStatus("Listening…"); };
+    rec.onresult = ev => {
+      let interim = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const t = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) finalTranscript += t; else interim += t;
+      }
+      setInput(finalTranscript || interim);
+    };
+    rec.onerror = e => { setStatus(e.error === "not-allowed" ? "Microphone blocked." : "Voice error: " + e.error); setListening(false); };
+    rec.onend = () => { setListening(false); setStatus(""); if (finalTranscript.trim()) send(finalTranscript); };
+    recognitionRef.current = rec;
+    try { rec.start(); } catch (_) { setStatus("Couldn't start the microphone."); setListening(false); }
+  }
+
+  if (!open) return null;
+
+  return (
+    <div className="ohmm-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="ohmm-modal" role="dialog" aria-label="Ohmm chat">
+        <div className="ohmm-head">
+          <span className="om-big">ॐ</span>
+          <div>
+            <h3>Ohmm</h3>
+            <p>A guide to Hindu philosophy · beta</p>
+          </div>
+          <button className="ohmm-close" onClick={onClose} aria-label="Close chat">×</button>
+        </div>
+        <div className="ohmm-body" ref={bodyRef}>
+          {messages.map(m => (
+            <div key={m.id} className={`ohmm-msg ${m.role}`}>
+              <div>{m.text}</div>
+              {m.picks && m.picks.length > 0 && (
+                <div className="ohmm-suggestions" style={{ marginTop: 8 }}>
+                  {m.picks.map(p => p.kind === "node" ? (
+                    <button key={p.id} onClick={() => onPick && onPick(p.id)} title="Open this node in the tree">Open {p.name}</button>
+                  ) : (
+                    <button key={p.id} disabled title="This is an FAQ topic, not a tree node">{p.name}</button>
+                  ))}
+                </div>
+              )}
+              {m.suggestions && m.suggestions.length > 0 && (
+                <div className="ohmm-suggestions">
+                  {m.suggestions.map((s, i) => <button key={i} onClick={() => send(s)}>{s}</button>)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="ohmm-foot">
+          <input ref={inputRef} className="ohmm-input"
+                 placeholder="Ask about schools, teachers, texts, or concepts…"
+                 value={input} onChange={e => setInput(e.target.value)} onKeyDown={onInputKey} />
+          <button className={`ohmm-mic ${listening ? "active" : ""}`} onClick={toggleDictation}
+                  aria-label={listening ? "Stop dictation" : "Dictate a question"}
+                  title={listening ? "Stop" : "Dictate"}>{listening ? "■" : "🎤"}</button>
+          <button className="ohmm-btn" onClick={() => send()} disabled={!input.trim()}>Ask</button>
+          <div className="ohmm-status">{status}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
+// App
+// ================================================================
+
+function App() {
+  const [selectedId, setSelectedId] = useState("root");
+  const [chatOpen, setChatOpen] = useState(false);
+  const selectedNode = useMemo(() => findNode(hierarchy, selectedId), [selectedId]);
+
+  const onPick = useCallback(id => {
+    if (findNode(hierarchy, id)) { setSelectedId(id); setChatOpen(false); }
+  }, []);
+
+  useEffect(() => {
+    const onKey = e => {
+      const tag = (e.target && e.target.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "/" || (e.key && e.key.toLowerCase() === "o" && e.shiftKey)) {
+        e.preventDefault(); setChatOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="brand">
+          <span className="om">ॐ</span>
+          <div>
+            <h1>Hindu Philosophy</h1>
+            <p className="subtitle">An interactive hierarchy of schools, sub-schools, and core concepts</p>
+          </div>
+        </div>
+        <div className="legend">
+          <span><i className="swatch swatch-astika" /> Orthodox (Āstika)</span>
+          <span><i className="swatch swatch-nastika" /> Heterodox (Nāstika)</span>
+          <span><i className="swatch swatch-texts" /> Texts</span>
+          <span><i className="swatch swatch-concepts" /> Concepts</span>
+        </div>
+      </header>
+      <main className="app-main">
+        <section className="tree-pane">
+          <HierarchyTree data={hierarchy} selectedId={selectedId} onSelect={setSelectedId} />
+          <div className="tree-hint">
+            Click a node to read · Click again to expand/collapse · Drag to pan · Scroll to zoom · Tap ॐ or press / to ask Ohmm
+          </div>
+        </section>
+        <aside className="detail-pane">
+          <DetailPanel node={selectedNode} />
+        </aside>
+      </main>
+      <footer className="app-footer">
+        Built with React + D3 · Tap the pulsing ॐ to open Ohmm · All descriptions are original paraphrased summaries
+      </footer>
+      <button className="ohmm-fab pulsing"
+              aria-label="Open Ohmm chat"
+              title="Open Ohmm chat"
+              onClick={() => setChatOpen(true)}>
+        <span className="ohmm-fab-label">ॐ</span>
+      </button>
+      <OhmmChat open={chatOpen} onClose={() => setChatOpen(false)} onPick={onPick} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
