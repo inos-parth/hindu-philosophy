@@ -54,17 +54,24 @@ button { font-family: inherit; }
   min-height: 0; position: relative;
 }
 @media (max-width: 960px) {
-  .app-main { grid-template-columns: 1fr; grid-template-rows: minmax(50vh, 58vh) auto; }
-}
-@media (max-width: 600px) {
-  .app-main { grid-template-rows: minmax(55vh, 60vh) auto; }
+  /* On phones, stop fighting the viewport. Tree has a fixed chunk,
+     detail flows below, the whole page scrolls natively. */
+  html, body, #root { height: auto; min-height: 100%; }
+  @supports (height: 100dvh) { html, body, #root { height: auto; min-height: 100dvh; } }
+  .app-shell { height: auto; min-height: 100%; }
+  .app-main { grid-template-columns: 1fr; grid-template-rows: auto auto; }
 }
 .tree-pane {
   position: relative; border-right: 1px solid var(--rule);
   background: radial-gradient(ellipse at top left, rgba(184, 134, 11, 0.06), transparent 60%), var(--bg);
   overflow: hidden; min-height: 0;
 }
-@media (max-width: 960px) { .tree-pane { border-right: none; border-bottom: 1px solid var(--rule); } }
+@media (max-width: 960px) {
+  .tree-pane { border-right: none; border-bottom: 1px solid var(--rule); height: 62dvh; min-height: 420px; }
+}
+@supports not (height: 62dvh) {
+  @media (max-width: 960px) { .tree-pane { height: 62vh; } }
+}
 .tree-wrap { height: 100%; width: 100%; }
 .tree-svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 .tree-svg:active { cursor: grabbing; }
@@ -87,7 +94,21 @@ button { font-family: inherit; }
   padding: clamp(18px, 3vw, 28px) clamp(18px, 3vw, 28px) 40px;
   border-left: 1px solid var(--rule); min-height: 0;
 }
-@media (max-width: 960px) { .detail-pane { border-left: none; max-height: 45vh; } }
+@media (max-width: 960px) {
+  .detail-pane {
+    border-left: none; border-top: 1px solid var(--rule);
+    overflow-y: visible; max-height: none;
+    padding: 20px 18px calc(120px + env(safe-area-inset-bottom));
+    font-size: 15.5px; line-height: 1.6;
+  }
+}
+@media (max-width: 600px) {
+  .detail h2 { font-size: 22px; }
+  .detail-summary { font-size: 15px; }
+  .detail-body p { font-size: 15.5px; line-height: 1.6; margin-bottom: 14px; }
+  .detail-children li { padding: 12px 0; }
+  .child-summary { font-size: 13.5px; line-height: 1.5; }
+}
 .detail.empty { color: var(--ink-soft); font-style: italic; }
 .detail-head { border-bottom: 1px solid var(--rule); padding-bottom: 14px; margin-bottom: 16px; }
 .detail-sanskrit {

@@ -132,15 +132,18 @@ button {
 }
 
 @media (max-width: 960px) {
+  /* On phones/tablets we stop trying to fit everything into a single
+     viewport. The tree gets a fixed chunk of the screen and the detail
+     panel flows below it; the page itself is what scrolls. This avoids
+     the nested-scroll awkwardness on iOS Safari. */
+  html, body, #root { height: auto; min-height: 100%; }
+  @supports (height: 100dvh) {
+    html, body, #root { height: auto; min-height: 100dvh; }
+  }
+  .app-shell { height: auto; min-height: 100%; }
   .app-main {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(50vh, 58vh) auto;
-  }
-}
-
-@media (max-width: 600px) {
-  .app-main {
-    grid-template-rows: minmax(55vh, 60vh) auto;
+    grid-template-rows: auto auto;
   }
 }
 
@@ -158,6 +161,15 @@ button {
   .tree-pane {
     border-right: none;
     border-bottom: 1px solid var(--rule);
+    /* Give the tree a fixed, generous chunk of the viewport so it feels
+       interactive, but never consumes the whole screen. */
+    height: 62dvh;
+    min-height: 420px;
+  }
+}
+@supports not (height: 62dvh) {
+  @media (max-width: 960px) {
+    .tree-pane { height: 62vh; }
   }
 }
 
@@ -228,7 +240,14 @@ button {
 @media (max-width: 960px) {
   .detail-pane {
     border-left: none;
-    max-height: 45vh;
+    border-top: 1px solid var(--rule);
+    /* No inner scroll on mobile — the page itself scrolls. Also leave
+       room below so the pulsing FAB never covers the last paragraph. */
+    overflow-y: visible;
+    max-height: none;
+    padding: 20px 18px calc(120px + env(safe-area-inset-bottom));
+    font-size: 15.5px;
+    line-height: 1.6;
   }
 }
 
@@ -304,6 +323,16 @@ button {
 .child-name { font-weight: 600; }
 .child-sanskrit { color: var(--ink-soft); font-style: italic; font-size: 13px; }
 .child-summary { margin: 4px 0 0; color: var(--ink-soft); font-size: 13px; line-height: 1.45; }
+
+/* Mobile readability bumps for the detail panel */
+@media (max-width: 600px) {
+  .detail h2 { font-size: 22px; }
+  .detail-summary { font-size: 15px; }
+  .detail-body p { font-size: 15.5px; line-height: 1.6; margin-bottom: 14px; }
+  .detail-children h3 { font-size: 12px; }
+  .detail-children li { padding: 12px 0; }
+  .child-summary { font-size: 13.5px; line-height: 1.5; }
+}
 
 /* ---------- Footer ---------- */
 
